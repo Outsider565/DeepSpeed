@@ -1951,9 +1951,9 @@ class DeepSpeedZeroOptimizer_Stage3(ZeROOptimizer):
             return
 
         norm_groups = self._get_norm_groups()
-        print("norm_groups: ", norm_groups)
+        # print("norm_groups: ", norm_groups)
         scaled_global_grad_norm = get_global_norm(norm_list=norm_groups)
-        print("scaled_global_grad_norm: ", scaled_global_grad_norm)
+        # print("scaled_global_grad_norm: ", scaled_global_grad_norm)
         # Stash unscaled gradient norm
         self._global_grad_norm = scaled_global_grad_norm / self.loss_scale
 
@@ -2038,7 +2038,7 @@ class DeepSpeedZeroOptimizer_Stage3(ZeROOptimizer):
             clip = ((total_norm / self.loss_scale) + 1e-6) / self.clip_grad
             if clip > 1:
                 combined_scale = clip * self.loss_scale
-        print("combined_scale:", combined_scale)
+        # print("combined_scale:", combined_scale)
         self.fp32_partitioned_groups_flat[sub_group_id].grad.mul_(1. / combined_scale)
 
     def _check_overflow(self, partition_gradients=True):
