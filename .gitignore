@@ -38,3 +38,7 @@ docs/code-docs/build
 
 # Testing data
 tests/unit/saved_checkpoint/  # Saved checkpoints for testing
+deepspeed/
+deepspeed.egg-info/
+dist/
+build/

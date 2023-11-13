@@ -345,6 +345,9 @@ def clip_grad_norm_(parameters, max_norm, norm_type=2, mpu=None):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
     max_norm = float(max_norm)
     norm_type = float(norm_type)
+    print("Parameters to be normalized:", len(parameters))
+    print("Max norm:", max_norm)
+    print("Norm type:", norm_type)
     if norm_type == inf:
         total_norm = max(p.grad.data.abs().max() for p in parameters)
         total_norm_cuda = get_accelerator().FloatTensor([float(total_norm)])
@@ -362,25 +365,31 @@ def clip_grad_norm_(parameters, max_norm, norm_type=2, mpu=None):
             else:
                 param_norm = p.grad.data.float().norm(norm_type)
                 total_norm += param_norm.item()**norm_type
+            print(f"Param norm for a parameter {p}: {param_norm.item()}")
+
 
         # Sum across all model parallel GPUs.
         total_norm_cuda = get_accelerator().FloatTensor([float(total_norm)])
         if mpu is not None:
             dist.all_reduce(total_norm_cuda, op=dist.ReduceOp.SUM, group=mpu.get_model_parallel_group())
         total_norm = total_norm_cuda[0].item()**(1. / norm_type)
+        print("Total norm calculated with p-norm:", total_norm)
 
     # Need to average total_norm across different GPUs due to the presence of moe params
     pg = groups._get_data_parallel_group()
     scaled_norm = total_norm * 1.0 / float(dist.get_world_size(group=pg))
+    print("Total scaled norm calculated with p-norm:", scaled_norm)
 
     scaled_norm_tensor = get_accelerator().FloatTensor([float(scaled_norm)])
     dist.all_reduce(scaled_norm_tensor, group=pg)
     total_norm = scaled_norm_tensor.item()
 
     clip_coef = max_norm / (total_norm + 1e-6)
+    print("Clip coefficient:", clip_coef)
     if clip_coef < 1:
         for p in parameters:
             p.grad.data.mul_(clip_coef)
+            print(f"Gradient scaled for a parameter{p} with coef: {clip_coef}")
     return total_norm
 
 
