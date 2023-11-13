@@ -1951,8 +1951,9 @@ class DeepSpeedZeroOptimizer_Stage3(ZeROOptimizer):
             return
 
         norm_groups = self._get_norm_groups()
+        print("norm_groups: ", norm_groups)
         scaled_global_grad_norm = get_global_norm(norm_list=norm_groups)
-
+        print("scaled_global_grad_norm: ", scaled_global_grad_norm)
         # Stash unscaled gradient norm
         self._global_grad_norm = scaled_global_grad_norm / self.loss_scale
 
